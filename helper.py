@@ -58,7 +58,6 @@ def dispatch():
                 swap_packages(truck1, truck2, distances, locations)
 
 
-    # loads trucks
 def load_trucks(loads, trucks):
     """
     Loads the trucks from the load list
@@ -74,23 +73,46 @@ def load_trucks(loads, trucks):
     return trucks
 
 
-    # updates address that was wrong
 def load_package_csv():
     """
     O(1) - Load the packages csv
 
     returns: list of packages
     """
-    eod = datetime.datetime.strptime("16:59:59", '%H:%M:%S')
-
-    # initialize package hash table
+    # package_list, will be used to sort packages
+    package_list = []
 
     # read csv
+    with (open('packages.csv') as package_file):
+        reader = csv.reader(package_file, delimeter=',')
+        next(reader)  # skips first line (header)
+
         # creates packages
+        for row in reader:
+            package_id = int(row[0])
+            address = {
+                "address": row[1],
+                "city": row[2],
+                "state": row[3],
+                "zip": row[4],
+            }
+            deadline = datetime.strptime(
+                row[5], '%H:%M %p') if row[5][0].isnumeric() else EOD
+            weight = row[6]
+            notes = row[7]
+            truck = None
+
             # create package object
-    # insert them into the hashtable
-    # append them to the package list
+            new_package = Package(package_id, address,
+                                  deadline, weight, notes, truck)
+            # insert into the package hash table
+            package_hashTable.insert(package_id, new_package)
+            # append them to the package list
+            package_list.append(new_package)
+            package_list = sort_package_load_list(package_list)
     # return the package list
+    return package_list
+
 def sort_package_load_list(package_list):
     """
     O(n) - Sort the packages into truck load lists based on:
