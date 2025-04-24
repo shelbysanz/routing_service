@@ -59,6 +59,20 @@ def dispatch():
 
 
     # loads trucks
+def load_trucks(loads, trucks):
+    """
+    Loads the trucks from the load list
+    """
+
+    # assign packages to trucks
+    for i, truck in enumerate(loads):
+        for package_id in loads[i + 1]:
+            package = package_hashTable.lookup(package_id)
+            truck.assign_package(package)
+            package.assign_truck(truck)
+
+    return trucks
+
 
     # updates address that was wrong
 def load_package_csv():
