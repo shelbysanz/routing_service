@@ -113,6 +113,7 @@ def load_package_csv():
     # return the package list
     return package_list
 
+
 def sort_package_load_list(package_list):
     """
     O(n) - Sort the packages into truck load lists based on:
@@ -120,25 +121,129 @@ def sort_package_load_list(package_list):
     - Deadlines
     - Locations
 
-    returns: list of loads, filled with package_ids for each truck
+    returns: list of loads, filled with packages for each truck
     """
-    # first sort by deadline
-    # use match case to organize by special notes
-    """
-    make sure to remove the package from the list when it's assigned
-        'on truck' - for special truck
-        'Wrong address' - address will be updated later
-        'delivered with' - add related package ids
-        'Delayed' - find hub arrival and sort based on truck departure
-    """
-    # get list of addresses and zip codes for packages in each load list as locales
-    # add early deadline packages to load list if address or zip code matches an existing locale
-    # add early deadline packages w/ no matching locales
+    group_set = set()
+    package_list.sort(key=lambda package: package.deadline)
+    original_list = package_list.copy()
+    loads = {1: [], 2: [], 3: []}
+    loaded_packages = []
 
-    # add remaining packages to any load under capacity with a matching address
-    # add remaining packages to any load under capacity with a matching zip
-    # add remianing packages to the load with the least # of packages
-    # raise and error if all loads are at max capacity
+    # sorts packages by sorting criteria in the notes
+    for package in package_list:
+        if package.notes:
+            note = package.notes
+
+            # if must be from a specific truck
+            if 'on truck' in note:
+                truck = int(note.split()[-1])
+                loads[truck].append(package.package_id)
+                loaded_packages.append(package)
+                continue
+
+            # if must be delivered later due to wrong address
+            if 'Wrong address' in note:
+                loads[3].append(package.package_id)
+                loaded_packages.append(package)
+                continue
+
+            # if needs to be delivered along with another package (same truck)
+            if 'delivered with' in note:
+                group = list(
+                    map(int, note[note.find('with') + 5:].split(', ')))
+                group_set.add(package.package_id)
+                loaded_packages.append(package)
+                if package.package_id not in loads[1]:
+                    loads[1].append(package.package_id)
+                    for item in group:
+                        group_set.add(item)
+                        for copy_pkg in original_list:
+                            if copy_pkg.package_id == item and copy_pkg.package_id not in loads[1]:
+                                loads[1].append(copy_pkg.package_id)
+                                loaded_packages.append(copy_pkg)
+
+            # if the package is delayed and must be delivered later
+            if 'Delayed' in note:
+                time_str = next(word for word in note.split()
+                                if word[0].isdigit())
+                delay_time = datetime.datetime.strptime(
+                    time_str, '%H:%M').time()
+                if delay_time.hour < 9:
+                    loads[1].append(package.package_id)
+                elif delay_time.hour < 10 or (delay_time.hour == 10 and delay_time.minute < 20):
+                    loads[2].append(package.package_id)
+                else:
+                    loads[3].append(package.package_id)
+                loaded_packages.append(package)
+                continue
+
+    # remove loaded packages from list
+    loaded_ids = set(id for truck in loads.values() for id in truck)
+    package_list = [
+        pkg for pkg in package_list if pkg.package_id not in loaded_ids]
+    original_list = package_list.copy()
+
+    # gather locations for each truck
+    truck_locales = {1: set(), 2: set(), 3: set()}
+    for truck_num, truck_load in loads.items():
+        for pkg in loaded_packages:
+            if pkg.package_id in truck_load:
+                truck_locales[truck_num].add(pkg.address["address"])
+                truck_locales[truck_num].add(pkg.address["zip"])
+
+    # assign based on location deadline
+    for pkg in package_list.copy():
+        if pkg.deadline != EOD:
+            for truck_num in (1, 2, 3):
+                if (pkg.address["address"] in truck_locales[truck_num] or
+                        pkg.address["zip"] in truck_locales[truck_num]) and len(loads[truck_num]) < 16:
+                    loads[truck_num].append(pkg.package_id)
+                    loaded_packages.append(pkg)
+                    package_list.remove(pkg)
+                    break
+
+    for pkg in package_list.copy():
+        if pkg.deadline != EOD:
+            loads[1].append(pkg.package_id)
+            loaded_packages.append(pkg)
+            package_list.remove(pkg)
+
+    original_list = package_list.copy()
+
+    # match by address
+    for truck_num, truck_load in loads.items():
+        for loaded_pkg in loaded_packages:
+            if loaded_pkg.package_id in truck_load:
+                for pkg in original_list.copy():
+                    if pkg.address["address"] == loaded_pkg.address["address"] and len(truck_load) < 16:
+                        truck_load.append(pkg.package_id)
+                        package_list.remove(pkg)
+
+    original_list = package_list.copy()
+
+    # match by zip
+    for truck_num, truck_load in loads.items():
+        for loaded_pkg in loaded_packages:
+            if loaded_pkg.package_id in truck_load:
+                for pkg in original_list.copy():
+                    if pkg.address["zip"] == loaded_pkg.address["zip"] and len(truck_load) < 16:
+                        truck_load.append(pkg.package_id)
+                        package_list.remove(pkg)
+
+    # load remaining packages
+    for pkg in package_list.copy():
+        truck_sizes = {k: len(v) for k, v in loads.items()}
+        for truck_num in sorted(truck_sizes, key=lambda x: (truck_sizes[x], x)):
+            if len(loads[truck_num]) < Truck.max_capacity:
+                loads[truck_num].append(pkg.package_id)
+                package_list.remove(pkg)
+                break
+        else:
+            raise IndexError('Trucks are at max capacity')
+
+    return loads
+
+
 def update_wrong_address(package):
     """
     O(1) - Fixes address for a package
