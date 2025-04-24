@@ -68,6 +68,12 @@ class Truck:
 
         returns boolean if the package will be on time or not
         """
+
+        current_time = self.departure_time
+        self.total_mileage = 0
+        self.location = 0
+
+
     def execute_route(self, query_time, distances):
         """
         O(n) - Getting the progress of the truck at the time of the query
