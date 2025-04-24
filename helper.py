@@ -261,6 +261,11 @@ def update_ending_location(truck, route, start_location):
     """
     O(1) - Updates special case, setting starting location for first truck
     """
+    if truck.id == 1:
+        route.append(start_location)
+    return route
+
+
 def three_opt_algorithm(truck, distances, locations):
     """
     O(n^3) - Get the original truck route, remove, swap, 3 locations on the route continuously
