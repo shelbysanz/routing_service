@@ -1,5 +1,3 @@
-from urllib.request import parse_keqv_list
-
 from Truck import Truck
 from Package import Package
 from PackageHt import PackageHt
@@ -322,11 +320,11 @@ def three_opt_algorithm(truck, distances, locations_param):
                 locations.append(locations_param.index(place))
                 continue
 
-    # Remove duplicate locations and randomize the initial route. - O(1)
+    # removes duplicate locations and randomizes the route
     locations = list(set(locations))
     random.shuffle(locations)
 
-    # insert the hub at the beginning each truck and at the end for Truck 1. - O(1)
+    # insert the hub at the beginning each truck and at the end for truck with id of 1
     locations.insert(0, start_location)
     if truck.id == 1:
         locations = update_ending_location(truck, locations, start_location)
@@ -371,7 +369,6 @@ def calculate_distance(route, distances):
 
     distance = 0
 
-    # Get two locations to get distance at a time
     for i in range(len(route) - 1):
         loc1 = route[i]
         loc2 = route[i + 1]

@@ -1,6 +1,6 @@
 import datetime
 import sys
-from helper import load_distance_csv, load_locations_csv
+from helper import load_distance_csv, load_locations_csv, update_ending_location
 
 
 def interface_main(package_hashTable, trucks):
@@ -149,7 +149,7 @@ def print_all_packages(custom_time, package_hashTable, trucks):
                                                              notes_header, status_header, truck_header,
                                                              delivery_header))
 
-    # Parse package hash table using lookup function to populate package data.
+    # parses the package hash table using the look up function and populates the package data
     for i in range(1, 41):
         current_package = package_hashTable.lookup(i)
         package_id = current_package.id
@@ -242,7 +242,7 @@ def package_lookup(custom_time, package_hashTable, trucks):
 
     print()
 
-    # Offer user the option to return to menu or exit the program.
+    # allows users to return to the main menu or exit the program
     next_input = input(
         '\nEnter 0 to return to the main menu.\nEnter any other key to exit.\n')
     if next_input == '0':
@@ -254,7 +254,7 @@ def package_lookup(custom_time, package_hashTable, trucks):
 
 def print_truck_stats_report_header(custom_time):
     width = 145
-    divider = '-' * 70  # Adjust length to match the visual style
+    divider = '-' * 70
     time_str = custom_time.strftime('%I:%M %p')
 
     print(f"""
@@ -274,7 +274,7 @@ def truck_stats(custom_time, package_hashTable, trucks):
     distances = load_distance_csv()
     locations = load_locations_csv()
 
-    # Collect and sort packages by truck
+    # collects and sorts packages by truck
     truck_packages = {truck.id: [] for truck in trucks}
     for truck in trucks:
         for parcel in truck.packages:
@@ -289,7 +289,7 @@ def truck_stats(custom_time, package_hashTable, trucks):
 
     for truck in trucks:
         packages = truck_packages[truck.id]
-        print(f'---------------  TRUCK {truck.id}  ----------------')
+        print(f'---------------  Truck {truck.id}  ----------------')
         print('General Information')
         print(
             f"Departure Time: {truck.departure_time.time().strftime('%I:%M %p')}")
@@ -301,6 +301,9 @@ def truck_stats(custom_time, package_hashTable, trucks):
         total_miles += progress_miles
 
         print('\nCurrent Progress')
+        if truck.route and progress_location == truck.route[-1]:
+            if truck.id == 1 and truck.route[-1] != 0:
+                update_ending_location(truck, truck.route, 0)
         print(f'Latest Location: {locations[progress_location]}')
         print(f'Miles Traveled so Far: {round(progress_miles, 1)}')
 
