@@ -50,7 +50,10 @@ class Truck:
         """
         O(1) - Updates the route if the new route is an improvement
         """
-    def assign_package(self, package_id):
+        if distance_param < self.total_distance:
+            self.route = route
+            self.total_distance = distance_param
+
         """
         O(1) - Assigns package to the truck
         """
