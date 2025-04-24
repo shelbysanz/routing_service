@@ -288,7 +288,21 @@ def calculate_distance(route, distances):
     O(n) - Calculates distance between all locations in a route
     """
 
+    distance = 0
+
     # Get two locations to get distance at a time
+    for i in range(len(route) - 1):
+        loc1 = route[i]
+        loc2 = route[i + 1]
+
+        if distances[loc1][loc2]:
+            distance += distances[loc1][loc2]
+        else:
+            distance += distances[loc2][loc1]
+
+    return distance
+
+
 def verify_route(truck, route, distance, distance_list):
     """
     Makes sure that the route is the best one before updating it
