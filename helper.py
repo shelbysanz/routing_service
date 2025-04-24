@@ -249,6 +249,14 @@ def update_wrong_address(package):
     O(1) - Fixes address for a package
     - Specific case - Simulation for package.id == 9
     """
+    package.address["address"] = '410 S State St'
+    package.address["city"] = 'Salt Lake City'
+    package.address["state"] = 'UT'
+    package.address["zip"] = '84111'
+
+    return package
+
+
 def update_ending_location(truck, route, start_location):
     """
     O(1) - Updates special case, setting starting location for first truck
