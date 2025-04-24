@@ -36,6 +36,10 @@ class Truck:
 
         returns boolean if the truck is full or not
         """
+        if len(self.packages) == Truck.max_capacity:
+            return True
+        return False
+
     def update_mileage(self, distance_param):
         """
         O(1) - Updates the total mileage of the truck
