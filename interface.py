@@ -304,6 +304,7 @@ def truck_stats(custom_time, package_hashTable, trucks):
         if truck.route and progress_location == truck.route[-1]:
             if truck.id == 1 and truck.route[-1] != 0:
                 update_ending_location(truck, truck.route, 0)
+                progress_location = 0
         print(f'Latest Location: {locations[progress_location]}')
         print(f'Miles Traveled so Far: {round(progress_miles, 1)}')
 
