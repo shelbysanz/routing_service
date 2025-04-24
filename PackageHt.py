@@ -17,6 +17,10 @@ class PackageHt:
         """
         O(1) - Gets the hash of the package using the package id
         """
+        i = hash(package_id) % self.size
+        bucket = self.table[i]
+        return bucket
+
     def insert(self, package_id, package_data):
         """
         O(n) - Insert/update a package using the package id and the package list
