@@ -69,7 +69,7 @@ class PackageHt:
         for package_id, package_data in tmp_packages:
             self.insert(package_id, package_data)
 
-    def update_all_statuses(self, query_time):
+    def update_all_statuses(self, custom_time):
         """
         O(n) - Updates the status of each package at a certain time
         """
@@ -77,9 +77,9 @@ class PackageHt:
             package = self.lookup(i)
             if not package:
                 continue
-            if query_time < package.dispatch_time.time():
+            if custom_time < package.dispatch_time.time():
                 package.update_status("At the hub")
-            elif package.dispatch_time.time() <= query_time < package.delivery_time.time():
+            elif package.dispatch_time.time() <= custom_time < package.delivery_time.time():
                 package.update_status("En route")
-            elif query_time >= package.delivery_time.time():
+            elif custom_time >= package.delivery_time.time():
                 package.update_status("Delivered")

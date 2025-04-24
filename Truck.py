@@ -120,7 +120,7 @@ class Truck:
 
         return all(parcel.delivery_time <= parcel.deadline for parcel in self.packages)
 
-    def execute_route(self, query_time, distances):
+    def execute_route(self, custom_time, distances):
         """
         O(n) - Getting the progress of the truck at the time of the query
 
@@ -132,7 +132,7 @@ class Truck:
         miles = 0
 
         for i in range(len(self.route) - 1):
-            if current_time.time() < query_time:
+            if current_time.time() < custom_time:
                 location = self.route[i]
                 next_location = self.route[i + 1]
 
