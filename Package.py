@@ -21,12 +21,15 @@ class Package:
         """
         O(1) - Return a string representation of the Package object
         """
-    def assign_package(self, truck):
+
+    def assign_truck(self, truck):
         """
         O(1) - Assigns truck to the package
 
         returns: boolean, if package was successfully assigned
         """
+        self.truck = truck
+
     def deliver(self):
         """
         O(1) - Delivers the package
