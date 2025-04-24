@@ -1,3 +1,8 @@
+from datetime import datetime
+from Package import Package
+from helper import calculate_distance
+
+
 class Truck:
 
     max_capacity = 16
@@ -11,10 +16,20 @@ class Truck:
         """
         O(1) - Initializing the truck object
         - id: Integer, Truck identifier
-        - package_ids: List of Integers, package ids assigned to the truck
+        - packages: List of packages assigned to the truck
         - total_mileage: Integer, total distance traveled by truck
         - route: List of Strings, route taken by truck
         """
+        self.id = id
+        self.departure_time = datetime.strptime(departure_time, '%H:%M:%S')
+        self.mph = Truck.avg_mph
+        self.max_capacity = Truck.max_capacity
+        self.packages = []
+        self.location = Truck.starting_location
+        self.total_mileage = Truck.starting_mileage
+        self.total_distance = Truck.starting_distance
+        self.route = []
+
     def is_max_capacity(self):
         """
         O(1) - Checks if the truck is at max capacity
