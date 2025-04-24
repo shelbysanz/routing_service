@@ -2,6 +2,21 @@ class Package:
     """
     Package class
     """
+
+    def __init__(self, id, address, deadline, weight, notes, truck=None):
+        """
+        O(1) - Initialize the package object
+        """
+        self.id = id
+        self.address = address
+        self.deadline = deadline
+        self.weight = weight
+        self.notes = notes
+        self.truck = truck
+        self.status = "At the hub"
+        self.dispatch_time = datetime.strptime("00:00", "%H:%M")
+        self.delivery_time = datetime.strptime("00:00", "%H:%M")
+
     def __str__(self):
         """
         O(1) - Return a string representation of the Package object
