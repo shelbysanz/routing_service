@@ -44,6 +44,8 @@ class Truck:
         """
         O(1) - Updates the total mileage of the truck
         """
+        self.total_mileage += distance_param
+
     def update_route(self, route, distance_param):
         """
         O(1) - Updates the route if the new route is an improvement
