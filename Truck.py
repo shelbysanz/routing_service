@@ -54,9 +54,13 @@ class Truck:
             self.route = route
             self.total_distance = distance_param
 
+    def assign_package(self, package):
         """
         O(1) - Assigns package to the truck
         """
+        if not self.is_max_capacity():
+            self.packages.append(package)
+
     def on_time(self, distances, addresses):
         """
         O(n^2) - Tracks time for the truck and packages.
