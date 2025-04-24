@@ -11,7 +11,7 @@ class PackageHt:
         O(1) - Inititalizes the hash table with 40 empty buckets
         """
         self.size = size
-        self.table = [[] * range(self.size)]
+        self.table = [[] for _ in range(self.size)]
         self.package_count = package_count
 
     def get_package_bucket(self, package_id):

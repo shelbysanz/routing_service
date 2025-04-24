@@ -1,15 +1,23 @@
+from urllib.request import parse_keqv_list
+
 from Truck import Truck
 from Package import Package
 from PackageHt import PackageHt
 from datetime import datetime
 from math import inf
+import random
 import csv
 
-EOD = datetime.datetime.strptime("16:59:59", '%H:%M:%S')
+EOD = datetime.strptime("16:59:59", '%H:%M:%S')
 package_hashTable = PackageHt()
+initial_trucks = [
+    Truck(1, '08:00:00', 1),
+    Truck(2, '09:06:00', 2),
+    Truck(3, '10:21:00', 1)
+]
 
 
-def dispatch():
+def dispatch(trucks):
     """
     O(n^2) - Dispatch controller
     - Loads trucks
@@ -21,16 +29,9 @@ def dispatch():
     # import data using csv readers
     loads = load_package_csv()
     distances = load_distance_csv()
-    locations = list(load_locations_csv())
+    locations = load_locations_csv()
 
-    # create 3 truck objects
-    trucks = [
-        Truck(1, '08:00:00', 1),
-        Truck(2, '09:06:00', 2),
-        Truck(3, '10:21:00', 1)
-    ]
-
-    trucks = load_trucks()
+    trucks = load_trucks(loads, trucks)
 
     for truck in trucks:
         for parcel in truck.packages:
@@ -43,16 +44,15 @@ def dispatch():
     final_route = [[], [], []]
 
     for _ in range(100):
-        for i, truck in enumerate(truck.trucks):
+        for i, truck in enumerate(trucks):
             final_route[i] = three_opt_algorithm(truck, distances, locations)
-            final_distances[i] = truck.update_route(
-                truck, final_route[i], final_distances[i], distances)
+            final_distances[i] = verify_route(truck, final_route[i], final_distances[i], distances)
 
     # make sure packages arrive by deadline or swap until they will
-    for i in range(len(truck.trucks)):
-        for j in range(i + 1, len(truck.trucks)):
-            truck1 = truck.trucks[i]
-            truck2 = truck.trucks[j]
+    for i in range(len(trucks)):
+        for j in range(i + 1, len(trucks)):
+            truck1 = trucks[i]
+            truck2 = trucks[j]
 
             if not truck1.on_time(distances, locations) or not truck2.on_time(distances, locations):
                 swap_packages(truck1, truck2, distances, locations)
@@ -67,10 +67,46 @@ def load_trucks(loads, trucks):
     for i, truck in enumerate(loads):
         for package_id in loads[i + 1]:
             package = package_hashTable.lookup(package_id)
-            truck.assign_package(package)
-            package.assign_truck(truck)
-
+            trucks[i].assign_package(package)
+            package.assign_truck(trucks[i])
     return trucks
+
+
+def load_distance_csv():
+    """
+    O(n^2) - Loads distances from csv and stores the values
+
+    returns distances
+    """
+
+    with open('distances.csv') as distance_file:
+        reader = csv.reader(distance_file)
+        addresses = next(reader)[2:]
+        distances = [[None] * len(addresses) for _ in range(len(addresses))]
+
+        for i, row in enumerate(reader):
+            for j, distance in enumerate(row[2:]):
+                distances[i][j] = float(distance) if distance else None
+
+    return distances
+
+
+def load_locations_csv():
+    """
+    O(n) - Loads locations from csv, includes only the first line, and stores in a list
+
+    returns locations
+    """
+
+    with open('distances.csv') as distance_file:
+        reader = csv.reader(distance_file, delimiter=',')
+        addresses = next(reader)[2:]
+        locations = []
+        for address in addresses:
+            formatted_address = address.splitlines()[1].strip(', ')
+            locations.append(formatted_address)
+
+    return list(locations)
 
 
 def load_package_csv():
@@ -84,7 +120,7 @@ def load_package_csv():
 
     # read csv
     with (open('packages.csv') as package_file):
-        reader = csv.reader(package_file, delimeter=',')
+        reader = csv.reader(package_file, delimiter=',')
         next(reader)  # skips first line (header)
 
         # creates packages
@@ -109,7 +145,7 @@ def load_package_csv():
             package_hashTable.insert(package_id, new_package)
             # append them to the package list
             package_list.append(new_package)
-            package_list = sort_package_load_list(package_list)
+    package_list = sort_package_load_list(package_list)
     # return the package list
     return package_list
 
@@ -137,13 +173,13 @@ def sort_package_load_list(package_list):
             # if must be from a specific truck
             if 'on truck' in note:
                 truck = int(note.split()[-1])
-                loads[truck].append(package.package_id)
+                loads[truck].append(package.id)
                 loaded_packages.append(package)
                 continue
 
             # if must be delivered later due to wrong address
             if 'Wrong address' in note:
-                loads[3].append(package.package_id)
+                loads[3].append(package.id)
                 loaded_packages.append(package)
                 continue
 
@@ -151,43 +187,43 @@ def sort_package_load_list(package_list):
             if 'delivered with' in note:
                 group = list(
                     map(int, note[note.find('with') + 5:].split(', ')))
-                group_set.add(package.package_id)
+                group_set.add(package.id)
                 loaded_packages.append(package)
-                if package.package_id not in loads[1]:
-                    loads[1].append(package.package_id)
+                if package.id not in loads[1]:
+                    loads[1].append(package.id)
                     for item in group:
                         group_set.add(item)
                         for copy_pkg in original_list:
-                            if copy_pkg.package_id == item and copy_pkg.package_id not in loads[1]:
-                                loads[1].append(copy_pkg.package_id)
+                            if copy_pkg.id == item and copy_pkg.id not in loads[1]:
+                                loads[1].append(copy_pkg.id)
                                 loaded_packages.append(copy_pkg)
 
             # if the package is delayed and must be delivered later
             if 'Delayed' in note:
                 time_str = next(word for word in note.split()
                                 if word[0].isdigit())
-                delay_time = datetime.datetime.strptime(
+                delay_time = datetime.strptime(
                     time_str, '%H:%M').time()
                 if delay_time.hour < 9:
-                    loads[1].append(package.package_id)
+                    loads[1].append(package.id)
                 elif delay_time.hour < 10 or (delay_time.hour == 10 and delay_time.minute < 20):
-                    loads[2].append(package.package_id)
+                    loads[2].append(package.id)
                 else:
-                    loads[3].append(package.package_id)
+                    loads[3].append(package.id)
                 loaded_packages.append(package)
                 continue
 
     # remove loaded packages from list
     loaded_ids = set(id for truck in loads.values() for id in truck)
     package_list = [
-        pkg for pkg in package_list if pkg.package_id not in loaded_ids]
+        pkg for pkg in package_list if pkg.id not in loaded_ids]
     original_list = package_list.copy()
 
     # gather locations for each truck
     truck_locales = {1: set(), 2: set(), 3: set()}
     for truck_num, truck_load in loads.items():
         for pkg in loaded_packages:
-            if pkg.package_id in truck_load:
+            if pkg.id in truck_load:
                 truck_locales[truck_num].add(pkg.address["address"])
                 truck_locales[truck_num].add(pkg.address["zip"])
 
@@ -197,14 +233,14 @@ def sort_package_load_list(package_list):
             for truck_num in (1, 2, 3):
                 if (pkg.address["address"] in truck_locales[truck_num] or
                         pkg.address["zip"] in truck_locales[truck_num]) and len(loads[truck_num]) < 16:
-                    loads[truck_num].append(pkg.package_id)
+                    loads[truck_num].append(pkg.id)
                     loaded_packages.append(pkg)
                     package_list.remove(pkg)
                     break
 
     for pkg in package_list.copy():
         if pkg.deadline != EOD:
-            loads[1].append(pkg.package_id)
+            loads[1].append(pkg.id)
             loaded_packages.append(pkg)
             package_list.remove(pkg)
 
@@ -213,29 +249,31 @@ def sort_package_load_list(package_list):
     # match by address
     for truck_num, truck_load in loads.items():
         for loaded_pkg in loaded_packages:
-            if loaded_pkg.package_id in truck_load:
+            if loaded_pkg.id in truck_load:
                 for pkg in original_list.copy():
                     if pkg.address["address"] == loaded_pkg.address["address"] and len(truck_load) < 16:
-                        truck_load.append(pkg.package_id)
-                        package_list.remove(pkg)
+                        truck_load.append(pkg.id)
+                        if pkg in package_list:
+                            package_list.remove(pkg)
 
     original_list = package_list.copy()
 
     # match by zip
     for truck_num, truck_load in loads.items():
         for loaded_pkg in loaded_packages:
-            if loaded_pkg.package_id in truck_load:
+            if loaded_pkg.id in truck_load:
                 for pkg in original_list.copy():
                     if pkg.address["zip"] == loaded_pkg.address["zip"] and len(truck_load) < 16:
-                        truck_load.append(pkg.package_id)
-                        package_list.remove(pkg)
+                        truck_load.append(pkg.id)
+                        if pkg in package_list:
+                            package_list.remove(pkg)
 
     # load remaining packages
     for pkg in package_list.copy():
         truck_sizes = {k: len(v) for k, v in loads.items()}
         for truck_num in sorted(truck_sizes, key=lambda x: (truck_sizes[x], x)):
             if len(loads[truck_num]) < Truck.max_capacity:
-                loads[truck_num].append(pkg.package_id)
+                loads[truck_num].append(pkg.id)
                 package_list.remove(pkg)
                 break
         else:
@@ -266,23 +304,65 @@ def update_ending_location(truck, route, start_location):
     return route
 
 
-def three_opt_algorithm(truck, distances, locations):
+def three_opt_algorithm(truck, distances, locations_param):
     """
     O(n^3) - Get the original truck route, remove, swap, 3 locations on the route continuously
     - Goal: Finding the shortest overall distance
     - Minimizing paths on the route that cross over others
     """
-    # O(n^2) - Map package addresses to location indices
-    # O(1) - Remove duplicate locations
-    # O(1) - Randomize the route
-    # O(n^3) - Iterate through route assigning 3 variables to adjacent locations
-    """
-        O(1) - Create new route after swapping variables
-        O(1) - Calculate hub to first location distance
-        O(1) - Calculate distance of route
-        O(1) - Update best_route if it is shorter
-    """
-    # return best_route
+
+    start_location = locations_param.index(Truck.hub_address)
+    locations = []
+
+    for parcel in truck.packages:
+        location = parcel.address["address"]
+        for place in locations_param:
+            if place == location:
+                locations.append(locations_param.index(place))
+                continue
+
+    # Remove duplicate locations and randomize the initial route. - O(1)
+    locations = list(set(locations))
+    random.shuffle(locations)
+
+    # insert the hub at the beginning each truck and at the end for Truck 1. - O(1)
+    locations.insert(0, start_location)
+    if truck.id == 1:
+        locations = update_ending_location(truck, locations, start_location)
+
+    best_route = locations
+    improved = True
+    while improved:
+        improved = False
+
+        # O(n^3) - iterating through the route assigning three variables to neighboring locations
+        for i in range(1, len(truck.packages) - 3):
+            for j in range(i + 1, len(truck.packages) - 2):
+                for k in range(j + 1, len(truck.packages) - 1):
+
+                    # O(1) - create a new_route by swapping
+                    new_route = (locations[:i] + locations[i:j + 1][::-1] + locations[j + 1:k + 1][::-1] +
+                                 locations[k + 1:])
+
+                    # O(1) - get the distance from the hug to the first route location
+                    start_of_best_route = [start_location, best_route[0]]
+                    start_of_new_route = [start_location, new_route[0]]
+
+                    # O(1) - get distance of the route
+                    best_starting_distance = calculate_distance(
+                        start_of_best_route, distances)
+                    new_starting_distance = calculate_distance(
+                        start_of_new_route, distances)
+
+                    # O(1) - update best_route to the shortest route
+                    if (calculate_distance(new_route, distances) + new_starting_distance) < (
+                            calculate_distance(best_route, distances) + best_starting_distance):
+                        best_route = new_route
+                        improved = True
+
+    return best_route
+
+
 def calculate_distance(route, distances):
     """
     O(n) - Calculates distance between all locations in a route
@@ -309,3 +389,56 @@ def verify_route(truck, route, distance, distance_list):
 
     returns the smaller distance
     """
+
+    new_distance = calculate_distance(route, distance_list)
+    if new_distance < distance:
+        distance = new_distance
+        truck.update_route(route, distance)
+
+    return distance
+
+
+def swap_packages(truck1, truck2, distances, locations):
+    """
+    O(n^2) - Swap packages when one is not on time
+    - Confirm swap if packages are on time or revert if the packages are still not on time
+
+    returns true if swap is successful and false if not
+    """
+
+    for parcel1 in truck1.packages:
+        for parcel2 in truck2.packages:
+            if not parcel1.notes and not parcel2.notes:
+                current_route1 = truck1.route.copy()
+                current_route2 = truck2.route.copy()
+
+                # remove each package from its truck, swap trucks and update assigned packages
+                truck1.unassign_package(parcel1)
+                truck2.unassign_package(parcel2)
+                truck1.assign_package(parcel2)
+                truck2.assign_package(parcel1)
+                parcel2.truck = 1
+                parcel1.truck = 2
+
+                # re-run truck through 3-opt algorithm and find best one
+                truck1.route = three_opt_algorithm(
+                    truck1, distances, locations)
+                truck2.route = three_opt_algorithm(
+                    truck2, distances, locations)
+
+                # check if packages are now on time
+                if truck1.on_time(distances, locations) and truck2.on_time(distances, locations):
+                    return True
+
+                # if still not on time, revert changes
+                else:
+                    truck1.unassign_package(parcel2)
+                    truck2.unassign_package(parcel1)
+                    truck1.assign_package(parcel1)
+                    truck2.assign_package(parcel2)
+                    parcel1.truck = 1
+                    parcel2.truck = 2
+                    truck1.route = current_route1
+                    truck2.route = current_route2
+
+    return False

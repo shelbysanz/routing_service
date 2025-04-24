@@ -1,6 +1,4 @@
-from datetime import datetime
-from Package import Package
-from helper import calculate_distance
+import datetime
 
 
 class Truck:
@@ -21,7 +19,7 @@ class Truck:
         - route: List of Strings, route taken by truck
         """
         self.id = id
-        self.departure_time = datetime.strptime(departure_time, '%H:%M:%S')
+        self.departure_time = datetime.datetime.strptime(departure_time, '%H:%M:%S')
         self.mph = Truck.avg_mph
         self.max_capacity = Truck.max_capacity
         self.packages = []
@@ -61,6 +59,31 @@ class Truck:
         if not self.is_max_capacity():
             self.packages.append(package)
 
+    def unassign_package(self, package):
+        """
+        O(1) - Removes package from the truck
+        """
+        self.packages.remove(package)
+
+    def calculate_distance(self, route, distances):
+        """
+        O(n) - Calculates distance between all locations in a route
+        """
+
+        distance = 0
+
+        # Get two locations to get distance at a time
+        for i in range(len(route) - 1):
+            loc1 = route[i]
+            loc2 = route[i + 1]
+
+            if distances[loc1][loc2]:
+                distance += distances[loc1][loc2]
+            else:
+                distance += distances[loc2][loc1]
+
+        return distance
+
     def on_time(self, distances, addresses):
         """
         O(n^2) - Tracks time for the truck and packages.
@@ -72,7 +95,6 @@ class Truck:
         current_time = self.departure_time
         self.total_mileage = 0
         self.location = 0
-
 
     def execute_route(self, query_time, distances):
         """
@@ -90,7 +112,8 @@ class Truck:
                 location = self.route[i]
                 next_location = self.route[i + 1]
 
-                distance_traveled = calculate_distance((location, next_location), distances)
+                distance_traveled = self.calculate_distance(
+                    (location, next_location), distances)
                 location = next_location
                 miles += distance_traveled
                 time_to_location = distance_traveled / self.mph
