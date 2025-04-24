@@ -46,6 +46,15 @@ class PackageHt:
         """
         O(n) - Find a package using the package_id
         """
+        try:
+            bucket = self.get_package_bucket(package_id)
+            if bucket in self.table:
+                for package in bucket:
+                    if package[0] == package_id:
+                        return package[1]
+        except Exception:
+            raise LookupError(f"Package not found, id: {package_id}")
+
     def resize(self):
         """
         O(n^2) - Resizing the hash table to fit the package size and copy over the existing values
