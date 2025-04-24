@@ -1,3 +1,14 @@
+from Truck import Truck
+from Package import Package
+from PackageHt import PackageHt
+from datetime import datetime
+from math import inf
+import csv
+
+EOD = datetime.datetime.strptime("16:59:59", '%H:%M:%S')
+package_hashTable = PackageHt()
+
+
 def dispatch():
     """
     O(n^2) - Dispatch controller
