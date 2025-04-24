@@ -85,7 +85,7 @@ class Truck:
 
         return distance
 
-    def on_time(self, distances, addresses):
+    def on_time(self, distances, addresses, truck3):
         """
         O(n^2) - Tracks time for the truck and packages.
         Will confirm if the packages will be delivered on time (by their deadline)
@@ -94,8 +94,31 @@ class Truck:
         """
 
         current_time = self.departure_time
-        self.total_mileage = 0
+        self.miles_traveled = 0
         self.location = 0
+
+        # iterates throught truck route
+        for i in range(len(self.route) - 1):
+            current_location = self.route[i]
+            next_location = self.route[i + 1]
+            self.location = next_location
+
+            # increments miles traveled and arrival time at each location
+            travel_distance = self.calculate_distance((current_location, next_location), distances)
+            self.miles_traveled += travel_distance
+            time_to_location = travel_distance / self.mph
+            current_time += datetime.timedelta(hours=time_to_location)
+
+            # sets the departure time
+            if self.id == 1 and self.location == 0 and current_time > truck3.departure_time:
+                truck3.departure_time = current_time
+
+            # updates package delivery times
+            for parcel in self.packages:
+                if addresses.index(parcel.address['address']) == next_location:
+                    parcel.delivery_time = current_time
+
+        return all(parcel.delivery_time <= parcel.deadline for parcel in self.packages)
 
     def execute_route(self, query_time, distances):
         """
