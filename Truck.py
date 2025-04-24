@@ -80,3 +80,21 @@ class Truck:
 
         returns the miles traveled and the location of the truck once the time of the query is reached
         """
+
+        current_time = self.departure_time
+        location = 0
+        miles = 0
+
+        for i in range(len(self.route) - 1):
+            if current_time.time() < query_time:
+                location = self.route[i]
+                next_location = self.route[i + 1]
+
+                distance_traveled = calculate_distance((location, next_location), distances)
+                location = next_location
+                miles += distance_traveled
+                time_to_location = distance_traveled / self.mph
+                current_time += datetime.timedelta(hours=time_to_location)
+            else:
+                return location, miles
+        return location, miles
