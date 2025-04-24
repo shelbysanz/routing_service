@@ -59,3 +59,11 @@ class PackageHt:
         """
         O(n^2) - Resizing the hash table to fit the package size and copy over the existing values
         """
+        tmp_packages = self.table.copy()
+
+        # create an empty hash table and double the size
+        new_table = PackageHt(self.size * 2, self.package_count)
+        self = new_table
+
+        for package_id, package_data in tmp_packages:
+            self.insert(package_id, package_data)
