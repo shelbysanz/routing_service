@@ -11,7 +11,7 @@ class PackageHt:
         O(1) - Inititalizes the hash table with 40 empty buckets
         """
         self.size = size
-        self.table = [[] * range(self.size)]
+        self.table = [[] for _ in range(self.size)]
         self.package_count = package_count
 
     def get_package_bucket(self, package_id):
@@ -69,15 +69,17 @@ class PackageHt:
         for package_id, package_data in tmp_packages:
             self.insert(package_id, package_data)
 
-    def update_all_statuses(self, query_time):
+    def update_all_statuses(self, custom_time):
         """
         O(n) - Updates the status of each package at a certain time
         """
-        for i in range(0, self.size + 1):
+        for i in range(1, self.size + 1):
             package = self.lookup(i)
-            if query_time < package.dispatch_time.time():
+            if not package:
+                continue
+            if custom_time < package.dispatch_time.time():
                 package.update_status("At the hub")
-            elif package.dispatch_time.time() <= query_time < package.delivery_time.time():
+            elif package.dispatch_time.time() <= custom_time < package.delivery_time.time():
                 package.update_status("En route")
-            elif query_time >= package.delivery_time.time():
+            elif custom_time >= package.delivery_time.time():
                 package.update_status("Delivered")

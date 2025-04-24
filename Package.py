@@ -24,6 +24,9 @@ class Package:
         """
         O(1) - Return a string representation of the Package object
         """
+        return "%s, %s, %s, %s, %s, %s, %s %s, %s, %s" % (
+            self.package_id, self.address, self.city, self.state, self.zip_code,
+            self.weight, self.deadline, self.notes, self.status, self.delivery_time)
 
     def assign_truck(self, truck):
         """
