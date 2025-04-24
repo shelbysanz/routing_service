@@ -1,3 +1,6 @@
+from datetime import datetime
+
+
 class Package:
     """
     Package class
@@ -34,3 +37,10 @@ class Package:
         """
         O(1) - Delivers the package
         """
+        self.truck = None
+
+    def update_status(self, status):
+        """
+        O(1) - Updates status of the package
+        """
+        self.status = status
