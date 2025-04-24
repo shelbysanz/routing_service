@@ -1,3 +1,4 @@
+
 class PackageHt:
     """
     Package hash table that stores the package objects
@@ -67,3 +68,16 @@ class PackageHt:
 
         for package_id, package_data in tmp_packages:
             self.insert(package_id, package_data)
+
+    def update_all_statuses(self, query_time):
+        """
+        O(n) - Updates the status of each package at a certain time
+        """
+        for i in range(0, self.size + 1):
+            package = self.lookup(i)
+            if query_time < package.dispatch_time.time():
+                package.update_status("At the hub")
+            elif package.dispatch_time.time() <= query_time < package.delivery_time.time():
+                package.update_status("En route")
+            elif query_time >= package.delivery_time.time():
+                package.update_status("Delivered")
