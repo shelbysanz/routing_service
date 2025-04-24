@@ -25,6 +25,23 @@ class PackageHt:
         """
         O(n) - Insert/update a package using the package id and the package list
         """
+        bucket = self.get_package_bucket(package_id)
+        package_info = [package_id, package_data]
+
+        if bucket in self.table:
+            for package in bucket:
+                if package[0] == package_id:
+                    package[1] = package_data
+                    return True
+
+            bucket.append(package_info)
+            return True
+
+        self.package_count += 1
+        load = self.package_count / self.size
+        if load > PackageHt.load_factor:
+            self.resize()
+
     def lookup(self, package_id):
         """
         O(n) - Find a package using the package_id
