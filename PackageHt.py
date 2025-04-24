@@ -73,8 +73,10 @@ class PackageHt:
         """
         O(n) - Updates the status of each package at a certain time
         """
-        for i in range(0, self.size + 1):
+        for i in range(1, self.size + 1):
             package = self.lookup(i)
+            if not package:
+                continue
             if query_time < package.dispatch_time.time():
                 package.update_status("At the hub")
             elif package.dispatch_time.time() <= query_time < package.delivery_time.time():

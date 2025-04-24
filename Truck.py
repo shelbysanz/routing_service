@@ -1,4 +1,5 @@
 import datetime
+from math import inf
 
 
 class Truck:
@@ -8,7 +9,7 @@ class Truck:
     avg_mph = 18
     starting_mileage = 0
     starting_location = 0
-    starting_distance = 0
+    starting_distance = inf
 
     def __init__(self, id, departure_time, driver):
         """
@@ -20,6 +21,7 @@ class Truck:
         """
         self.id = id
         self.departure_time = datetime.datetime.strptime(departure_time, '%H:%M:%S')
+        self.driver = driver
         self.mph = Truck.avg_mph
         self.max_capacity = Truck.max_capacity
         self.packages = []
@@ -44,13 +46,13 @@ class Truck:
         """
         self.total_mileage += distance_param
 
-    def update_route(self, route, distance_param):
+    def update_route(self, route, distance):
         """
         O(1) - Updates the route if the new route is an improvement
         """
-        if distance_param < self.total_distance:
+        if distance < self.total_distance:
             self.route = route
-            self.total_distance = distance_param
+            self.total_distance = distance
 
     def assign_package(self, package):
         """
@@ -72,7 +74,6 @@ class Truck:
 
         distance = 0
 
-        # Get two locations to get distance at a time
         for i in range(len(route) - 1):
             loc1 = route[i]
             loc2 = route[i + 1]

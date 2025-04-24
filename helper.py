@@ -49,13 +49,14 @@ def dispatch(trucks):
             final_distances[i] = verify_route(truck, final_route[i], final_distances[i], distances)
 
     # make sure packages arrive by deadline or swap until they will
+    truck3 = trucks[2]
     for i in range(len(trucks)):
         for j in range(i + 1, len(trucks)):
             truck1 = trucks[i]
             truck2 = trucks[j]
 
-            if not truck1.on_time(distances, locations) or not truck2.on_time(distances, locations):
-                swap_packages(truck1, truck2, distances, locations)
+            if not truck1.on_time(distances, locations, truck3) or not truck2.on_time(distances, locations, truck3):
+                swap_packages(truck1, truck2, truck3, distances, locations)
 
 
 def load_trucks(loads, trucks):
@@ -398,7 +399,7 @@ def verify_route(truck, route, distance, distance_list):
     return distance
 
 
-def swap_packages(truck1, truck2, distances, locations):
+def swap_packages(truck1, truck2, truck3, distances, locations):
     """
     O(n^2) - Swap packages when one is not on time
     - Confirm swap if packages are on time or revert if the packages are still not on time
@@ -427,7 +428,7 @@ def swap_packages(truck1, truck2, distances, locations):
                     truck2, distances, locations)
 
                 # check if packages are now on time
-                if truck1.on_time(distances, locations) and truck2.on_time(distances, locations):
+                if truck1.on_time(distances, locations, truck3) and truck2.on_time(distances, locations, truck3):
                     return True
 
                 # if still not on time, revert changes
