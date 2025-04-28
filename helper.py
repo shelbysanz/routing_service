@@ -27,24 +27,32 @@ def dispatch(trucks):
     # import data using csv readers
     loads = load_package_csv()
     distances = load_distance_csv()
+    # its the same csv but this time pulls different data (just the first line of address)
     locations = load_locations_csv()
-
+    # loads trucks with packages (requirements and sorting runs here - based on notes, location, and deadlines)
     trucks = load_trucks(loads, trucks)
 
+    # for each truck, sets the dispatch time for the package
     for truck in trucks:
         for parcel in truck.packages:
             parcel.dispatch_time = truck.departure_time
+            # special case package with id 9, needs to be updated with the right address
             if parcel.id == 9:
                 # updates wrong address
                 parcel = update_wrong_address(parcel)
 
+    # initializing variables to run the 3 opt algorithm
     final_distances = [inf, inf, inf]
     final_route = [[], [], []]
 
+    # runnning the 3 opt algorithm
     for _ in range(100):
         for i, truck in enumerate(trucks):
+            # runs the 3 opt algorithm
             final_route[i] = three_opt_algorithm(truck, distances, locations)
-            final_distances[i] = verify_route(truck, final_route[i], final_distances[i], distances)
+            # verifies the route is actually better
+            final_distances[i] = verify_route(
+                truck, final_route[i], final_distances[i], distances)
 
     # make sure packages arrive by deadline or swap until they will
     truck3 = trucks[2]
@@ -52,7 +60,6 @@ def dispatch(trucks):
         for j in range(i + 1, len(trucks)):
             truck1 = trucks[i]
             truck2 = trucks[j]
-
             if not truck1.on_time(distances, locations, truck3) or not truck2.on_time(distances, locations, truck3):
                 swap_packages(truck1, truck2, truck3, distances, locations)
 
