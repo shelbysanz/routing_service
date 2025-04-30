@@ -1,3 +1,5 @@
+from datetime import time
+
 
 class PackageHt:
     """
@@ -77,6 +79,11 @@ class PackageHt:
             package = self.lookup(i)
             if not package:
                 continue
+            # special case package with id 9, needs to be updated with the right address
+            if custom_time >= time(10, 20):
+                if package.id == 9:
+                    # updates wrong address
+                    package.update_wrong_address()
             if custom_time < package.dispatch_time.time():
                 package.update_status("At the hub")
             elif package.dispatch_time.time() <= custom_time < package.delivery_time.time():

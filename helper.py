@@ -36,10 +36,6 @@ def dispatch(trucks):
     for truck in trucks:
         for parcel in truck.packages:
             parcel.dispatch_time = truck.departure_time
-            # special case package with id 9, needs to be updated with the right address
-            if parcel.id == 9:
-                # updates wrong address
-                parcel = update_wrong_address(parcel)
 
     # initializing variables to run the 3 opt algorithm
     final_distances = [inf, inf, inf]
@@ -286,19 +282,6 @@ def sort_package_load_list(package_list):
             raise IndexError('Trucks are at max capacity')
 
     return loads
-
-
-def update_wrong_address(package):
-    """
-    O(1) - Fixes address for a package
-    - Specific case - Simulation for package.id == 9
-    """
-    package.address["address"] = '410 S State St'
-    package.address["city"] = 'Salt Lake City'
-    package.address["state"] = 'UT'
-    package.address["zip"] = '84111'
-
-    return package
 
 
 def update_ending_location(truck, route, start_location):

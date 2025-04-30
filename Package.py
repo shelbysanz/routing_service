@@ -47,3 +47,13 @@ class Package:
         O(1) - Updates status of the package
         """
         self.status = status
+
+    def update_wrong_address(self):
+        """
+        O(1) - Fixes address for a package
+        - Specific case - Simulation for package.id == 9
+        """
+        self.address["address"] = '410 S State St'
+        self.address["city"] = 'Salt Lake City'
+        self.address["state"] = 'UT'
+        self.address["zip"] = '84111'
